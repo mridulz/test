@@ -1,0 +1,30 @@
+- name: Kill all Tripwire processes
+  become: true
+  ansible.builtin.shell: |
+    pkill -9 -f tripwire || true
+    
+- name: Kill Tripwire Axon Agent processes
+  become: true
+  ansible.builtin.shell: |
+    pkill -9 -f twagent || true
+    pkill -9 -f twdaemon || true
+    pkill -9 -f twexecutor || true
+
+
+- name: Find Tripwire PIDs
+  become: true
+  ansible.builtin.shell: pgrep -f tripwire
+  register: tripwire_pids
+  failed_when: false
+  changed_when: false
+
+- name: Kill Tripwire PIDs
+  become: true
+  ansible.builtin.command:
+    argv:
+      - kill
+      - -9
+      - "{{ item }}"
+  loop: "{{ tripwire_pids.stdout_lines }}"
+  when: tripwire_pids.rc == 0
+
