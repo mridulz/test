@@ -20,12 +20,20 @@ oracle_sids:
 
 ---
 
-- name: Get ORACLE_HOME for each Oracle SID
+- name: Check ordered inactive patches for each Oracle SID
   ansible.builtin.shell: |
     export ORACLE_SID="{{ oracle_sid }}"
     export ORAENV_ASK=NO
-    . oraenv >/dev/null 2>&1
-    printf '%s\n' "$ORACLE_HOME"
+
+    . /usr/local/bin/oraenv >/dev/null 2>&1
+
+    if [ -z "$ORACLE_HOME" ]; then
+      echo "ERROR: ORACLE_HOME was not set for SID {{ oracle_sid }}" >&2
+      exit 1
+    fi
+
+    "$ORACLE_HOME/OPatch/opatch" util listorderedinactivepatches \
+      -oh "$ORACLE_HOME"
   args:
     executable: /bin/bash
   become: true
@@ -39,13 +47,15 @@ oracle_sids:
   loop_control:
     loop_var: oracle_sid
     label: "{{ oracle_sid }}"
-  register: oracle_home_results
+  register: opatch_results
   changed_when: false
 
-- name: Show discovered ORACLE_HOME values
+- name: Show OPatch results
   ansible.builtin.debug:
-    msg: "{{ item.oracle_sid }} -> {{ item.stdout }}"
-  loop: "{{ oracle_home_results.results }}"
+    msg: |
+      SID: {{ item.oracle_sid }}
+      {{ item.stdout }}
+  loop: "{{ opatch_results.results }}"
   loop_control:
     label: "{{ item.oracle_sid }}"
 
