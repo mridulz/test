@@ -1,0 +1,21 @@
+- name: Get Oracle SIDs from oratab
+  ansible.builtin.shell: |
+    awk -F: '!/^[[:space:]]*#/ && NF >= 2 {print $1}' /etc/oratab
+  register: oratab_output
+  changed_when: false
+
+- name: Save Oracle SIDs
+  ansible.builtin.set_fact:
+    oracle_sids: "{{ oratab_output.stdout_lines }}"
+
+oracle_sids:
+  - ORCL
+  - MGMTDB
+  - +ASM
+
+- name: Show Oracle SIDs
+  ansible.builtin.debug:
+    msg: "Oracle SID: {{ item }}"
+  loop: "{{ oracle_sids }}"
+
+
