@@ -18,12 +18,14 @@ oracle_sids:
     msg: "Oracle SID: {{ item }}"
   loop: "{{ oracle_sids }}"
 
+---
+
 - name: Get ORACLE_HOME for each Oracle SID
   ansible.builtin.shell: |
     export ORACLE_SID="{{ oracle_sid }}"
     export ORAENV_ASK=NO
-    . oraenv
-    echo "${ORACLE_HOME}"
+    . oraenv >/dev/null 2>&1
+    printf '%s\n' "$ORACLE_HOME"
   args:
     executable: /bin/bash
   become: true
@@ -39,5 +41,12 @@ oracle_sids:
     label: "{{ oracle_sid }}"
   register: oracle_home_results
   changed_when: false
+
+- name: Show discovered ORACLE_HOME values
+  ansible.builtin.debug:
+    msg: "{{ item.oracle_sid }} -> {{ item.stdout }}"
+  loop: "{{ oracle_home_results.results }}"
+  loop_control:
+    label: "{{ item.oracle_sid }}"
 
 
