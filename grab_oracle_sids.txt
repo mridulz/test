@@ -18,4 +18,26 @@ oracle_sids:
     msg: "Oracle SID: {{ item }}"
   loop: "{{ oracle_sids }}"
 
+- name: Get ORACLE_HOME for each Oracle SID
+  ansible.builtin.shell: |
+    export ORACLE_SID="{{ oracle_sid }}"
+    export ORAENV_ASK=NO
+    . oraenv
+    echo "${ORACLE_HOME}"
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: >-
+    {{
+      'grid'
+      if ('MGMT' in oracle_sid or 'ASM' in oracle_sid)
+      else 'oracle'
+    }}
+  loop: "{{ oracle_sids }}"
+  loop_control:
+    loop_var: oracle_sid
+    label: "{{ oracle_sid }}"
+  register: oracle_home_results
+  changed_when: false
+
 
