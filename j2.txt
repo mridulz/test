@@ -1,120 +1,25 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Oracle OPatch Report</title>
+{% for host in ansible_play_hosts %}
 
-  <style>
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 14px;
-      color: #222;
-      margin: 30px;
-    }
+<h2>{{ host }}</h2>
 
-    h1 {
-      font-size: 24px;
-      margin-bottom: 25px;
-    }
+<table>
+  <thead>
+    <tr>
+      <th>Oracle SID</th>
+      <th>Ordered Inactive Patches</th>
+    </tr>
+  </thead>
 
-    h2 {
-      font-size: 18px;
-      margin-top: 30px;
-      padding-bottom: 5px;
-      border-bottom: 2px solid #444;
-    }
+  <tbody>
+    <tr>
+      <td>{{ hostvars[host].oracle_report.oracle_sid }}</td>
+      <td>
+        <pre>{{ hostvars[host].oracle_report.opath_list }}</pre>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
-    h3 {
-      font-size: 15px;
-      margin-top: 20px;
-      margin-bottom: 8px;
-    }
+{% endfor %}
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-    }
-
-    th,
-    td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-      vertical-align: top;
-    }
-
-    th {
-      background-color: #f2f2f2;
-    }
-
-    pre {
-      margin: 0;
-      padding: 10px;
-      background-color: #f7f7f7;
-      border: 1px solid #ddd;
-      font-family: Consolas, "Courier New", monospace;
-      font-size: 12px;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-
-    .no-data {
-      color: #777;
-      font-style: italic;
-    }
-  </style>
-</head>
-
-<body>
-
-  <h1>Oracle OPatch Report</h1>
-
-  {% for host in ansible_play_hosts %}
-
-    <h2>{{ host }}</h2>
-
-    {% if hostvars[host].oracle_report is defined and hostvars[host].oracle_report %}
-
-      <table>
-        <thead>
-          <tr>
-            <th style="width: 15%;">Oracle SID</th>
-            <th>Ordered Inactive Patches</th>
-          </tr>
-        </thead>
-
-        <tbody>
-
-          {% for sid, data in hostvars[host].oracle_report | dictsort %}
-
-            <tr>
-              <td>
-                <strong>{{ sid }}</strong>
-              </td>
-
-              <td>
-                {% if data.opatch_list is defined and data.opatch_list | trim %}
-                  <pre>{{ data.opatch_list }}</pre>
-                {% else %}
-                  <span class="no-data">No inactive patches found</span>
-                {% endif %}
-              </td>
-            </tr>
-
-          {% endfor %}
-
-        </tbody>
-      </table>
-
-    {% else %}
-
-      <p class="no-data">No Oracle SID data found for this host.</p>
-
-    {% endif %}
-
-  {% endfor %}
-
-</body>
-</html>
 
